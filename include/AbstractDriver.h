@@ -9,7 +9,7 @@
 
 #include <cstdint>
 
-#include "AbstractMotors.h"
+class AbstractMotor;
 
 
 /**

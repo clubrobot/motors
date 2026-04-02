@@ -5,8 +5,8 @@
 #ifndef MOTORS_ABSTRACTMOTORS_H
 #define MOTORS_ABSTRACTMOTORS_H
 
+#include <cstdint>
 #include "AbstractDriver.h"
-
 
 class AbstractMotor
 {
@@ -16,7 +16,7 @@ public:
      *
      * Méthode à implémenter.
      */
-    virtual ~AbstractMotor(){}
+    virtual ~AbstractMotor() = default;
     /**
      * @brief Charge une nouvelle vitesse.
      *
@@ -35,7 +35,7 @@ public:
      *
      * @return virtual float
      */
-    virtual float getMaxVelocity() const = 0;
+    [[nodiscard]] virtual float getMaxVelocity() const = 0;
 
 protected:
     AbstractDriver* m_driver = nullptr;
