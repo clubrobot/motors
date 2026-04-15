@@ -37,7 +37,6 @@ public:
      */
     [[nodiscard]] virtual float getMaxVelocity() const = 0;
 
-protected:
     AbstractDriver* m_driver = nullptr;
     uint8_t m_driverId = 255;
 
