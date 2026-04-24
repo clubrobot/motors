@@ -1,72 +1,38 @@
-#include <Arduino.h>
+//
+// Created by Romain Pouvreau on 23/04/2026.
+//
 
 #include "WheelMotor.h"
 
-#define FORWARD  0
-#define BACKWARD 1
+#include <math.h>
 
-void WheelMotor::attach(int EN, int PWM, int DIR)
+WheelMotor::WheelMotor(float maxVelocity)
+    : m_maxVelocity(maxVelocity)
 {
-
-	m_EN  = EN;
-	m_PWM = PWM;
-	m_DIR = DIR;
-	pinMode(m_EN, OUTPUT);
-	pinMode(m_PWM, OUTPUT);
-	pinMode(m_DIR, OUTPUT);
-	analogWriteFrequency(20000);
-}
-
-void WheelMotor::update()
-{
-	//if (m_velocity != 0){
-		int PWM = m_velocity / (2 * M_PI * m_wheelRadius) * m_constant * 255;
-		if (PWM <   0) PWM *= -1;
-		if (PWM > 255 * m_maxPWM) PWM = 255 * m_maxPWM;
-		digitalWrite(m_EN, HIGH);
-		analogWrite(m_PWM, PWM);
-		digitalWrite(m_DIR, (m_velocity * m_constant * m_wheelRadius > 0) ? FORWARD : BACKWARD);
-	//}else{digitalWrite(m_EN, LOW);}
+    // Initialisation héritée de AbstractMotor
+    m_driver = nullptr;
+    m_driverId = 255;
 }
 
 float WheelMotor::getMaxVelocity() const
 {
-	return fabs((2 * M_PI * m_wheelRadius) / m_constant) * m_maxPWM;
+    return m_maxVelocity;
 }
 
-void WheelMotor::setConstant   (float constant)   {
-	m_constant = constant;
-	update();
-}
-
-void WheelMotor::setWheelRadius   (float wheelRadius)   {
-	m_wheelRadius = wheelRadius;
-	update();
-}
-
-void WheelMotor::setMaxPWM   (float maxPWM)   {
-	m_maxPWM = maxPWM;
-	update();
-}
-
-
-void DCMotorsDriver::attach(int RESET, int FAULT)
+void WheelMotor::setMaxVelocity(float maxVelocity)
 {
-	m_RESET = RESET;
-	m_FAULT = FAULT;
-	pinMode(m_RESET, OUTPUT);
-	pinMode(m_FAULT, INPUT);
+    m_maxVelocity = maxVelocity;
 }
 
-void DCMotorsDriver::reset()
+void WheelMotor::setWheelRadius(float wheelRadius)   {
+    m_wheelRadius = wheelRadius;
+}
+
+void WheelMotor::setVelocity(float velocity)
 {
-	digitalWrite(m_RESET, LOW);
-	delayMicroseconds(10); // One may adjust this value.
-	digitalWrite(m_RESET, HIGH);
+    this->m_driver->setVelocity(velocity / (2 * M_PI * m_wheelRadius) * m_constant, this->m_driverId);
 }
 
-bool DCMotorsDriver::isFaulty()
-{
-	return (digitalRead(m_FAULT) == LOW);
+void WheelMotor::setConstant(float constant)   {
+    m_constant = constant;
 }
-

@@ -1,127 +1,75 @@
-#ifndef MOTORS_WHEEL_MOTOR
-#define MOTORS_WHEEL_MOTOR
+//
+// Created by Romain Pouvreau on 15/04/2026.
+//
 
-#include "NonCopyable.h"
+#ifndef MOTORS_WHEELMOTOR_H
+#define MOTORS_WHEELMOTOR_H
+
 #include "AbstractMotors.h"
 
-#include <math.h>
-
-/** class DCMotor
- *  \brief Pilotage de moteur continu
- *  \author Ulysse Darmet
- *	Cette classe permet de contrôler un moteur à courant continu par PWM via un driver Moteur
- * 	
- *
- *
- *	 Remarque : Pour les moteurs qui ne sont reliées à des roues seulement régler la constante du moteur à 1/tension_PWM.
- * 				Ainsi, on peut simplement controler le moteur via setVelocity() en envoyant comme commande la tension de PWM souhaitée.
- *	 
- */
-class WheelMotor : private NonCopyable, public AbstractMotor
+/**
+* @class WheelMotor
+* @brief Implémentation concrète d'un moteur DC standard.
+* * Cette classe permet de définir les limites physiques d'un moteur
+* et de le lier à un canal spécifique d'un AbstractDriver.
+*/
+class WheelMotor : public AbstractMotor
 {
 public:
-	WheelMotor() : m_enabled(false), m_velocity(0), m_wheelRadius(1 / (2 * M_PI)), m_constant(1), m_maxPWM(1){}
+    /**
+     * @brief Constructeur par défaut.
+     * @param maxVelocity Vitesse maximale autorisée (généralement 1.0f pour 100%).
+     */
+    explicit WheelMotor(float maxVelocity = 1.0f);
 
-	//!Indique quels pins de l'arduino son utilisé pour ce moteur (actuellement correspond à moteur 1 ou 2)
-	void attach(int EN, int PWM, int DIR);
+    /**
+     * @brief Retourne la vitesse maximale configurée.
+     * @return float Vitesse max.
+     */
+    [[nodiscard]] float getMaxVelocity() const override;
 
-	//!Envoie une commande de vitesse au moteur
-	/*!
-		\param velocity vitesse de commande en mm/s
-	*/
-	void setVelocity(float velocity){m_velocity = velocity; update();}
+    /**
+     * @brief Modifie la vitesse maximale (limitation logicielle).
+     * @param maxVelocity Nouvelle vitesse max.
+     */
+    void setMaxVelocity(float maxVelocity);
 
-	//!Paramètre la constante du moteur 
-	/*!
-		\param constant constante en rad/s/Volt
-	*/
-	void setConstant   (float constant);
+    //!Renvoie la constante du moteur paramétrée
+    /*!
+        \return constante : (60 * reduction_ratio / velocity_constant_in_RPM) / supplied_voltage_in_V
+    */
+    float getConstant   () const {return m_constant;}
 
-	//!Paramètre le rayon de la roue liée au moteur
-	/*!
-		\param wheelRadius rayon en mm
-	*/
-	void setWheelRadius(float wheelRadius);
+    //!Renvoie rayon de la roue du moteur
+    /*
+        \return rayon en mm
+    */
+    float getWheelRadius() const {return m_wheelRadius;}
 
-	//!Paramètre une valeur limite de PWN à ne pas dépasser
-	/*!
-		\param maxPWM valeur limite entre 0 et 1
-	*/
-	void setMaxPWM     (float maxPWM);
+    //!Paramètre le rayon de la roue liée au moteur
+    /*!
+        \param wheelRadius rayon en mm
+    */
+    void setWheelRadius(float wheelRadius);
 
-	void enable (){m_enabled = true;  update();}
-	void disable(){m_enabled = false; update();}
+    //!Envoie une commande de vitesse au moteur
+    /*!
+        \param velocity vitesse de commande en mm/s
+    */
+    void setVelocity(float velocity) override;
 
-	//!Renvoie la vitesse de commande actuelle du moteur
-	/*!
-		\return vitesse en mm/s
-	*/
-	float getVelocity   () const {return m_velocity;}
 
-	//!Renvoie la constante du moteur paramétrée
-	/*!
-		\return constante : (60 * reduction_ratio / velocity_constant_in_RPM) / supplied_voltage_in_V
-	*/
-	float getConstant   () const {return m_constant;}
-
-	//!Renvoie rayon de la roue du moteur
-	/*
-		\return rayon en mm 
-	*/
-	float getWheelRadius() const {return m_wheelRadius;}
-
-	//!Renvoie la valeur max de PWM
-	/*!
-		\return valeur entre 0 et 1
-	*/
-	float getMaxPWM     () const {return m_maxPWM;}
-	bool  isEnabled     () const {return m_enabled;}
-
-	//!Renvoie la vitesse maximale avec les constantes actuelles
-	/*!
-		\return vitesse max en mm/s
-	*/
-	float getMaxVelocity() const;
-
-protected:
-
-	void update();
-
-	bool  m_enabled;
-	float m_velocity; //!<  in mm/s (millimeters per second)
-	float m_wheelRadius; //!<  in mm
-	float m_constant; //!<  (60 * reduction_ratio / velocity_constant_in_RPM) / supplied_voltage_in_V
-	float m_maxPWM; //!<  in range ]0, 1]
-
-	int	m_EN;
-	int	m_PWM;
-	int	m_DIR;
-};
-
-/** class DCMotorsDriver
- *  \brief Utilisation des drivers moteurs
- *  \author Ulysse Darmet
- * 	est une classe permettant d'utiliser les fonctions du driver
- *	 
- */
-class DCMotorsDriver
-{
-public:
-	//!Définit les pins utiles au driver
-	/*!
-		\param RESET pin de reset
-		\param FAULT pin de Fault
-	*/
-	void attach(int RESET, int FAULT);
-
-	void reset();
-
-	bool isFaulty();
+    //!Paramètre la constante du moteur
+    /*!
+        \param constant constante en rad/s/Volt
+    */
+    void setConstant   (float constant);
 
 private:
-
-	int m_RESET;
-	int m_FAULT;
+    float m_maxVelocity; ///< Limite de vitesse pour ce moteur.
+    float m_wheelRadius; //!<  in mm
+    float m_constant; //!<  (60 * reduction_ratio / velocity_constant_in_RPM) / supplied_voltage_in_V
 };
 
-#endif //MOTORS_WHEEL_MOTOR
+
+#endif //MOTORS_WHEELMOTOR_H
