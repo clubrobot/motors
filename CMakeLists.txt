@@ -1,9 +1,5 @@
-cmake_minimum_required(VERSION 4.2)
-project(motors)
-
-set(CMAKE_CXX_STANDARD 20)
-
-add_library(motors STATIC include/NonCopyable.h
-        include/DCMotor.h
-        include/AbstractMotors.h
-        include/AbstractDriver.h)
+idf_component_register(
+        SRCS src/DCMotor.cpp src/AbstractDriver.cpp src/AbstractMotors.cpp src/DRV8876.cpp src/I2CDCDriver.cpp src/WheelMotor.cpp
+        INCLUDE_DIRS include
+        REQUIRES pca9685 mathutils
+)
